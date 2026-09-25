@@ -1,0 +1,7 @@
+{
+    "blacklist": "",
+    "emojis": {
+        "\uE000": {"names":["sillyplugin","siypugi"], "color":"974fdb"},
+        "\uE047": ["back"]
+    }
+}
