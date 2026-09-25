@@ -170,7 +170,7 @@ dependencies {
 //    }
     // 1.21.8: figura 0.1.6+1.21.8 is not published on maven, so use a custom fork jar (.libs)
     if (minecraft == "1.21.8") {
-        modstitchModImplementation(files("${rootProject.projectDir}/.libs/figura-0.1.6+1.21.8-fabric-mc.jar"))
+        modstitchModImplementation(files("${rootProject.projectDir}/.libs/figura-0.1.6-but-ai-edited.1+1.21.8-fabric-mc.jar"))
     } else {
         modstitchModImplementation(figura(loader))
     }

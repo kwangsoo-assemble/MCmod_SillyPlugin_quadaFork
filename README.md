@@ -13,9 +13,10 @@
 
 | Item | Value |
 |---|---|
+| Version | `1.2.0-alpha.but-ai-edited.1` — a pre-release tag added to tell it apart from upstream 1.2.0-alpha (see 5) |
 | Added target | Minecraft 1.21.8, Fabric |
 | Upstream targets | 1.21.4 and 1.21.1 (Fabric, NeoForge), 1.20.1 (Fabric) — the version folders are still there, but they **do not build right now** (see "Building") |
-| Figura for 1.21.8 | figura_core_but_ai_edited 0.1.6+1.21.8 (this version is not on the official Maven) |
+| Figura for 1.21.8 | figura_core_but_ai_edited `0.1.6-but-ai-edited.1+1.21.8` (not on the official Maven) |
 | Java | 21 |
 | Build setup | Stonecutter (multi-version) + modstitch (loader abstraction), as in upstream |
 
@@ -89,6 +90,13 @@ available as a key. Unbound by default.
 
 Code: `mixin/SillyKeybindMixin.java` (new) · `SillySettings.java`
 
+### 5. Version number
+
+To avoid confusion with upstream 1.2.0-alpha, the version carries an extra [SemVer pre-release](https://semver.org/#spec-item-9) tag —
+`1.2.0-alpha.but-ai-edited.1` (jar: `sillyplugin-1.2.0-alpha.but-ai-edited.1.jar`). The last number is this fork's own release number.
+
+Code: `gradle.properties`
+
 The new mixins are registered in `src/main/resources/sillyplugin.mixins.json`, and the setting and doc strings are in
 `src/main/resources/assets/sillyplugin/lang/en_us.json`.
 
@@ -103,13 +111,13 @@ JDK 21 is required. **Only the 1.21.8-fabric target has been built and tested.**
 ```
 # 1) Build figura_core_but_ai_edited and put its jar in .libs/
 mkdir .libs
-cp ../figura_core_but_ai_edited/fabric/build/libs/figura-0.1.6+1.21.8-fabric-mc.jar .libs/
+cp ../figura_core_but_ai_edited/fabric/build/libs/figura-0.1.6-but-ai-edited.1+1.21.8-fabric-mc.jar .libs/
 
 # 2) 1.21.8-fabric (the active target)
 ./gradlew :1.21.8-fabric:build
 ```
 
-Output: `versions/1.21.8-fabric/build/libs/sillyplugin-1.2.0-alpha.jar`
+Output: `versions/1.21.8-fabric/build/libs/sillyplugin-1.2.0-alpha.but-ai-edited.1.jar`
 
 - ⚠ The other targets keep only their upstream version folders and **do not build as things stand.** Code added in
   this fork uses a 1.21.2+ API (`PlayerRenderState`) and an API that exists only in figura_core_but_ai_edited
