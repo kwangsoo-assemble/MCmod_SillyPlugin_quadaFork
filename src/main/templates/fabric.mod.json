@@ -1,0 +1,38 @@
+{
+    "schemaVersion": 1,
+    "id": "${mod_id}",
+    "name": "${mod_name}",
+    "version": "${mod_version}",
+    "description": "${mod_description}",
+    "environment": "client",
+    "icon": "assets/sillyplugin/icon.png",
+    "authors": [
+        "Niko Solstice"
+    ],
+    "contributors": [
+        {
+            "name": "TheKillerBunny: Making goofyplugin"
+        },
+        {
+            "name": "Sam ★: Being so cool fr"
+        },
+        {
+            "name": "cosmic_the_cat: Creating the icon for the plugin, and making VSDocs"
+        }
+    ],
+    "entrypoints": {
+        "main": [
+            "dev.celestial.silly.loaders.fabric.FabricEntrypoint"
+        ],
+        "voicechat": [
+            "dev.celestial.silly.plugin.SillyVoicechatPlugin"
+        ]
+    },
+    "mixins": [
+        {
+            "config": "sillyplugin.mixins.json",
+            "environment": "*"
+        }
+    ],
+    "license": "${mod_license}"
+}

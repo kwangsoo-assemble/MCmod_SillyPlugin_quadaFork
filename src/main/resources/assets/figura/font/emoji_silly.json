@@ -1,0 +1,18 @@
+{
+    "providers": [
+        {
+            "type": "bitmap",
+            "file": "sillyplugin:font/emojis/silly.png",
+            "ascent": 8,
+            "chars": [
+                "\uE000"
+            ]
+        },
+        {
+            "type": "space",
+            "advances": {
+                "\uE047": -8
+            }
+        }
+    ]
+}
