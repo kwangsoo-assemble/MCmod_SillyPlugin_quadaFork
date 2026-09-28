@@ -112,6 +112,10 @@ public class SillyAPI {
     public Set<String> hiddenPlayers = new HashSet<>();
     // 이 아바타 착용 엔티티의 히트박스 스케일 (x=너비, y=높이). null = 바닐라 그대로.
     public FiguraVec2 boundingBoxScale = null;
+    // ★ 몹(CEM) 아바타용 — 엔티티 UUID → 히트박스 스케일 (2026-09-28, 하네스 entity_avatar_template).
+    //   플레이어는 PlayerDimensionsMixin 이 아바타의 boundingBoxScale 을 직접 읽지만, 몹 아바타는 플레이어 목록(getLoadedAvatar)에 없어서
+    //   MobDimensionsMixin 이 이 표를 읽는다 — 크기 계산(핫패스)에서 아바타를 찾거나 만들지 않게.
+    public static final Map<UUID, FiguraVec2> MOB_BOX_SCALES = new ConcurrentHashMap<>();
 
     public SillyAPI(FiguraLuaRuntime runtime) {
         this.avatar = runtime.owner;
@@ -174,8 +178,9 @@ public class SillyAPI {
         ClientLevel level = minecraft.level;
         SillyBlockHandler.removeOf(avatar.owner, level);
 
-        if (boundingBoxScale != null) {
+        if (boundingBoxScale != null || MOB_BOX_SCALES.containsKey(avatar.owner)) {
             boundingBoxScale = null;
+            MOB_BOX_SCALES.remove(avatar.owner);
             Entity bbEntity = EntityUtils.getEntityByUUID(avatar.owner);
             if (bbEntity != null) bbEntity.refreshDimensions();
         }
@@ -1406,6 +1411,11 @@ public class SillyAPI {
             boundingBoxScale = FiguraVec2.of(sanitizeBoxScale(scale.x), sanitizeBoxScale(scale.y));
         }
         Entity bbEntity = EntityUtils.getEntityByUUID(avatar.owner);
+        // 몹(CEM) 아바타 — 크기 믹스인이 읽는 표에 올린다(플레이어는 PlayerDimensionsMixin 이 boundingBoxScale 을 직접 본다)
+        if (bbEntity != null && !(bbEntity instanceof Player)) {
+            if (boundingBoxScale == null) MOB_BOX_SCALES.remove(avatar.owner);
+            else MOB_BOX_SCALES.put(avatar.owner, boundingBoxScale);
+        }
         if (bbEntity != null) bbEntity.refreshDimensions();
         return this;
     }

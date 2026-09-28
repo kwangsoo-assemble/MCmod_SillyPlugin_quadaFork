@@ -87,6 +87,12 @@
    `PlayerDimensionsMixin`(신규)이 `Player.getDefaultDimensions` RETURN을 스케일하되
    **눈높이는 바닐라 유지**(카메라/시선 레이 서버 desync 방지). 아바타 cleanup 시 자동 리셋.
    클라 표시 전용 — 서버 실제 히트박스는 그대로다.
+   - ★ **몹(CEM) 아바타에도 먹는다** (2026-09-28, 하네스 `projects/entity_avatar_template` — 베리티 더미 히트박스 너비 3배).
+     전에는 `PlayerDimensionsMixin`(플레이어만 · `getLoadedAvatar` 도 플레이어 목록)이라 몹 아바타가 불러도 아무 일이 없었다.
+     `MobDimensionsMixin`(신규 · client)이 `LivingEntity.getDimensions`(**final** — 모든 몹이 지난다 · 좀비처럼 `getDefaultDimensions` 를 덮어쓴 몹도)
+     RETURN 을 스케일한다. 스케일은 `SillyAPI.MOB_BOX_SCALES`(엔티티 UUID → 스케일 · `setBoundingBoxScale` 이 몹이면 올리고 · cleanup 이 지운다)에서
+     읽는다 — 크기 계산(핫패스)에서 아바타를 찾거나 **만들지** 않는다(코어 `AvatarManager.getAvatar` 는 CEM 아바타를 새로 만든다).
+     플레이어 · 잠자는 자세는 안 건드린다 · 눈높이 바닐라 · `isClientSide` 가드(통합 서버 스레드). 빌드 jar `javap -v`: 대상 `method_18377`.
 
 5. **`/figura nonhost_load` 를 포크 코어로 이관 — 여기서 제거** (2026-09-22). `SillyCommands.nonhostLoad` 와
    접근자 믹스인 `AvatarManagerAccessor`·`LocalAvatarLoaderAccessor` 를 지웠다 (`sillyplugin.mixins.json` 도).
