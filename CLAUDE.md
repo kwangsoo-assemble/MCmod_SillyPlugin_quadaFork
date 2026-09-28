@@ -93,6 +93,7 @@
      RETURN 을 스케일한다. 스케일은 `SillyAPI.MOB_BOX_SCALES`(엔티티 UUID → 스케일 · `setBoundingBoxScale` 이 몹이면 올리고 · cleanup 이 지운다)에서
      읽는다 — 크기 계산(핫패스)에서 아바타를 찾거나 **만들지** 않는다(코어 `AvatarManager.getAvatar` 는 CEM 아바타를 새로 만든다).
      플레이어 · 잠자는 자세는 안 건드린다 · 눈높이 바닐라 · `isClientSide` 가드(통합 서버 스레드). 빌드 jar `javap -v`: 대상 `method_18377`.
+     🎬 2026-09-28 게임이 뜨고(믹스인 대상 찾음) 베리티 더미 폭 3배가 F3+B 로 보였다.
 
 5. **`/figura nonhost_load` 를 포크 코어로 이관 — 여기서 제거** (2026-09-22). `SillyCommands.nonhostLoad` 와
    접근자 믹스인 `AvatarManagerAccessor`·`LocalAvatarLoaderAccessor` 를 지웠다 (`sillyplugin.mixins.json` 도).
