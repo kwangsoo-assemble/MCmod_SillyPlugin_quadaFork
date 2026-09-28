@@ -112,6 +112,10 @@ public class SillyAPI {
     public Set<String> hiddenPlayers = new HashSet<>();
     // Hitbox scale of the entity wearing this avatar (x = width, y = height). null = unchanged vanilla size.
     public FiguraVec2 boundingBoxScale = null;
+    // Mob (CEM) avatars: entity UUID -> hitbox scale.
+    //   Players are covered by PlayerDimensionsMixin, which reads the avatar's boundingBoxScale directly. Mob avatars are not in
+    //   the player list (getLoadedAvatar), so MobDimensionsMixin reads this map instead - the size calculation (a hot path) never looks up or creates an avatar.
+    public static final Map<UUID, FiguraVec2> MOB_BOX_SCALES = new ConcurrentHashMap<>();
 
     public SillyAPI(FiguraLuaRuntime runtime) {
         this.avatar = runtime.owner;
@@ -174,8 +178,9 @@ public class SillyAPI {
         ClientLevel level = minecraft.level;
         SillyBlockHandler.removeOf(avatar.owner, level);
 
-        if (boundingBoxScale != null) {
+        if (boundingBoxScale != null || MOB_BOX_SCALES.containsKey(avatar.owner)) {
             boundingBoxScale = null;
+            MOB_BOX_SCALES.remove(avatar.owner);
             Entity bbEntity = EntityUtils.getEntityByUUID(avatar.owner);
             if (bbEntity != null) bbEntity.refreshDimensions();
         }
@@ -1417,6 +1422,11 @@ public class SillyAPI {
             boundingBoxScale = FiguraVec2.of(sanitizeBoxScale(scale.x), sanitizeBoxScale(scale.y));
         }
         Entity bbEntity = EntityUtils.getEntityByUUID(avatar.owner);
+        // Mob (CEM) avatars: publish the scale to the map the dimensions mixin reads (players: PlayerDimensionsMixin reads boundingBoxScale directly)
+        if (bbEntity != null && !(bbEntity instanceof Player)) {
+            if (boundingBoxScale == null) MOB_BOX_SCALES.remove(avatar.owner);
+            else MOB_BOX_SCALES.put(avatar.owner, boundingBoxScale);
+        }
         if (bbEntity != null) bbEntity.refreshDimensions();
         return this;
     }

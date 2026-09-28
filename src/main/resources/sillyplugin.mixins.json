@@ -15,6 +15,7 @@
         "LocalPlayerMixin",
         "MinecraftAccessor",
         "MinecraftClientMixin",
+        "MobDimensionsMixin",
         "PlayerDimensionsMixin",
         "PlayerRendererInvoker",
         "PlayerRendererMixin",

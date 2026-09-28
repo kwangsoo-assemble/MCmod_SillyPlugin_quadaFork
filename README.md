@@ -59,8 +59,9 @@ Code: `settings.gradle.kts` · `stonecutter.gradle.kts` · `build.gradle.kts` ·
 - **`silly:getSkinModel(player or name[, callback])`** → `"SLIM"` or `"WIDE"`. Works for players who are not online,
   through the profile cache and the session server. When given a name it is **asynchronous** and answers through
   the callback.
-- **`silly:setBoundingBoxScale(...)`** → scales the hitbox width and height of the player wearing the avatar
+- **`silly:setBoundingBoxScale(...)`** → scales the hitbox width and height of the player or mob wearing the avatar
   (vec2, two values or one value, 0.05–16; call with no arguments to reset).
+  - Called from a mob (CEM) avatar, it changes that mob's hitbox. The sleeping pose is left alone.
   - Eye height stays vanilla (so the camera and look direction do not drift from the server).
   - **Client-side display only** — the server's real hitbox does not change.
   - Resets automatically when the avatar is cleaned up.
@@ -69,7 +70,7 @@ Code: `settings.gradle.kts` · `stonecutter.gradle.kts` · `build.gradle.kts` ·
 
 *`silly:setBoundingBoxScale` — the hitbox (white box) grows, while the eye height (red line) stays vanilla.*
 
-Code: `lua/SillyAPI.java` · three new files — `helper/ThirdPersonPose.java`, `mixin/PlayerRendererInvoker.java`, `mixin/PlayerDimensionsMixin.java`
+Code: `lua/SillyAPI.java` · four new files — `helper/ThirdPersonPose.java`, `mixin/PlayerRendererInvoker.java`, `mixin/PlayerDimensionsMixin.java`, `mixin/MobDimensionsMixin.java`
 
 ### 3. `/figura` subcommands — `upload` and `reload` scopes
 
