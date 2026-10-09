@@ -41,6 +41,10 @@
 - README.md 는 영어판이고 **원본은 하네스의 한글판**이다 — `projects/mc_repositories/readme_ko/MCmod_SillyPlugin_quadaFork.md`. 기능을 바꾸면 거기 먼저 적고
   영어 README 에 옮긴 뒤 `repos.py mark-readme sillyplugin`. 원본 README 는 `README.upstream.md`.
 - 레포 이름 규칙 — `MCmod_` / `MCplugin_` + 프로젝트 이름 (+ 포크는 `_quadaFork`). `but-ai-edited` 는 **버전명에만** 쓴다.
+- ★ **버전 · 릴리스** (🙋 2026-10-10 «기능 업데이트 할때마다 버전명 올리는 처리»): jar 에 들어가는 코드가 바뀌면 `gradle.properties` 의 `silly_version` 를 올린다 —
+  포크는 꼬리 `but-ai-edited.N` 의 **N+1**(원본 버전이 바뀌면 원본을 따르고 `.1` 부터). 그 작업의 **첫 코드 수정과 함께** 올리고(같은 작업의
+  시험 배포는 같은 버전) → 빌드 · 배포 · 🎬 → `repos.py release sillyplugin`(태그 + GitHub Release 에 jar). 문서만 바뀌면 안 올린다.
+  안 올리면 `repos.py status` 가 `VERSION_STALE` · 올리고 안 내면 `UNRELEASED` 로 빨갛다.
 - ⚠ **치트 게이트 완화판이 그대로 공개돼 있다**(아래 «자체 변경» 2) — 옛 공개판만 원본 게이트였다(2026-09-25 «공개판은 원본대로»).
   🙋 2026-10-10 «내부판 그대로 올리기» — README 의 «참고» 도 완화판 설명으로 고쳤다.
 
