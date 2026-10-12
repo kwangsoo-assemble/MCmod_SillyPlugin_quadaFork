@@ -170,7 +170,7 @@ dependencies {
 //    }
     // 1.21.8: maven에 figura 0.1.6+1.21.8이 없음 — 커스텀 포크 jar(.libs) 사용
     if (minecraft == "1.21.8") {
-        modstitchModImplementation(files("${rootProject.projectDir}/.libs/figura-0.1.6-but-ai-edited.2+1.21.8-fabric-mc.jar"))
+        modstitchModImplementation(files("${rootProject.projectDir}/.libs/figura-0.1.6-but-ai-edited.3+1.21.8-fabric-mc.jar"))
     } else {
         modstitchModImplementation(figura(loader))
     }
