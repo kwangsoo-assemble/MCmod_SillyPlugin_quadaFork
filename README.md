@@ -72,7 +72,11 @@ Code: `settings.gradle.kts` · `stonecutter.gradle.kts` · `build.gradle.kts` ·
 
 *`silly:setBoundingBoxScale` — the hitbox (white box) grows, while the eye height (red line) stays vanilla.*
 
-Code: `lua/SillyAPI.java` · four new files — `helper/ThirdPersonPose.java`, `mixin/PlayerRendererInvoker.java`, `mixin/PlayerDimensionsMixin.java`, `mixin/MobDimensionsMixin.java`
+- **`silly:setSprintParticles(enabled)`** → turns the sprint particles (the block dust under the feet) of the entity
+  wearing the avatar on or off (`false` = off; call with no arguments to turn them back on). It works on every client
+  that sees the avatar and does not depend on the cheats setting. Landing particles are sent by the server and cannot be turned off.
+
+Code: `lua/SillyAPI.java` · five new files — `helper/ThirdPersonPose.java`, `mixin/PlayerRendererInvoker.java`, `mixin/PlayerDimensionsMixin.java`, `mixin/MobDimensionsMixin.java`, `mixin/SprintParticleMixin.java`
 
 ### 3. `/figura` subcommands — `upload` and `reload` scopes
 
@@ -203,7 +207,11 @@ and the upstream README is kept as `README.upstream.md`.
 
 *`silly:setBoundingBoxScale` — 히트박스(흰 상자)는 커지고, 눈높이(빨간 선)는 바닐라 그대로다.*
 
-코드: `lua/SillyAPI.java` · 새 파일 넷 — `helper/ThirdPersonPose.java` · `mixin/PlayerRendererInvoker.java` · `mixin/PlayerDimensionsMixin.java` · `mixin/MobDimensionsMixin.java`
+- **`silly:setSprintParticles(enabled)`** → 아바타를 입은 엔티티의 달리기 파티클(발밑 블록 가루)을 켜고 끈다
+  (`false` = 끄기 · 인자 없이 부르면 켜기). 그 아바타를 보는 모든 클라이언트에서 먹는다 · 치트 설정과 무관.
+  착지 파티클은 서버가 보내는 것이라 끌 수 없다.
+
+코드: `lua/SillyAPI.java` · 새 파일 다섯 — `helper/ThirdPersonPose.java` · `mixin/PlayerRendererInvoker.java` · `mixin/PlayerDimensionsMixin.java` · `mixin/MobDimensionsMixin.java` · `mixin/SprintParticleMixin.java`
 
 ### 3. `/figura` 하위 명령 — `upload` · `reload` 범위
 

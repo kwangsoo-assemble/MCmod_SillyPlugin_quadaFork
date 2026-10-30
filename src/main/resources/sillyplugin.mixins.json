@@ -21,6 +21,7 @@
         "PlayerRendererMixin",
         "SillyKeybindMixin",
         "SoundBufferAccessor",
+        "SprintParticleMixin",
         "hud.BossHealthOverlayMixin",
         "hud.ChatComponentMixin",
         "hud.GuiMixin",

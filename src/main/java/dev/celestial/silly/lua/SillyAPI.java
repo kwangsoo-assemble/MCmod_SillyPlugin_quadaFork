@@ -116,6 +116,9 @@ public class SillyAPI {
     //   플레이어는 PlayerDimensionsMixin 이 아바타의 boundingBoxScale 을 직접 읽지만, 몹 아바타는 플레이어 목록(getLoadedAvatar)에 없어서
     //   MobDimensionsMixin 이 이 표를 읽는다 — 크기 계산(핫패스)에서 아바타를 찾거나 만들지 않게.
     public static final Map<UUID, FiguraVec2> MOB_BOX_SCALES = new ConcurrentHashMap<>();
+    // 이 아바타 착용 엔티티의 달리기 파티클(발밑 블록 가루). false = 보는 클라에서 안 뿌린다 (2026-10-30, 하네스 본격플러팅강좌 스태프 판넬).
+    //   SprintParticleMixin 이 Entity.canSpawnSprintParticle RETURN 에서 읽는다. 아바타가 새로 뜨면 SillyAPI 도 새로 만들어져 기본값(true)으로 돌아온다.
+    public boolean sprintParticles = true;
 
     public SillyAPI(FiguraLuaRuntime runtime) {
         this.avatar = runtime.owner;
@@ -1423,6 +1426,24 @@ public class SillyAPI {
     private static double sanitizeBoxScale(double value) {
         if (Double.isNaN(value) || value < 0.05) return 0.05;
         return Math.min(value, 16.0);
+    }
+
+    @LuaWhitelist
+    @LuaMethodDoc(
+            value = "silly.set_sprint_particles",
+            overloads = {
+                    @LuaMethodOverload(
+                            argumentTypes = { Boolean.class },
+                            argumentNames = { "enabled" },
+                            returnType = SillyAPI.class
+                    ),
+                    @LuaMethodOverload(returnType = SillyAPI.class)
+            }
+    )
+    public SillyAPI setSprintParticles(Boolean enabled) {
+        // 없이 호출(nil) = 켜기(바닐라로 되돌림). 표시 전용이라 치트 게이트 없음 — 이 아바타를 보는 모든 클라에서 먹는다.
+        sprintParticles = enabled == null || enabled;
+        return this;
     }
 
     @LuaWhitelist

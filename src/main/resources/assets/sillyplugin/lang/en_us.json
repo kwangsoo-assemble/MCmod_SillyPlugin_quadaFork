@@ -5,6 +5,7 @@
   "figura.docs.silly.set_pos": "Sets your player's position.\nsendPacket controls whether or not to send a MovePlayer packet instead.\nRequires cheats.",
   "figura.docs.silly.set_velocity": "Sets your player's velocity.\nRequires cheats.",
   "figura.docs.silly.set_rot": "Sets your player's rotation.\nRequires cheats.",
+  "figura.docs.silly.set_sprint_particles": "Toggles the sprint particles of the entity wearing this avatar, on every client that sees it.\nCalling it with nil turns them back on. This is purely visual, and does not need cheats.",
   "figura.docs.silly.set_body_rot": "Sets your player's body rotation.\nThis is purely visual, and does not need cheats.",
   "figura.docs.silly.set_noclip": "Sets if your player should act like a spectator.\nRequires cheats.",
   "figura.docs.silly.cheats_enabled": "Returns if cheats are presently enabled.",
