@@ -61,6 +61,12 @@ Code: `settings.gradle.kts` · `stonecutter.gradle.kts` · `build.gradle.kts` ·
 - **`silly:getSkinModel(player or name[, callback])`** → `"SLIM"` or `"WIDE"`. Works for players who are not online,
   through the profile cache and the session server. When given a name it is **asynchronous** and answers through
   the callback.
+- **`silly:getSkin` and `silly:getSkinModel` called with a name never stop the avatar when the lookup fails.**
+  - Players in the server's player list (tab list) use the skin data already there — the session server is not asked.
+  - Anyone else is looked up on the session server. Lookups for the same player are shared across avatars, and a
+    failed lookup is retried twice, after 3 and 10 seconds.
+  - If the player still cannot be found, the callback is not called and only a warning goes to the game log (the
+    current skin stays).
 - **`silly:setBoundingBoxScale(...)`** → scales the hitbox width and height of the player or mob wearing the avatar
   (vec2, two values or one value, 0.05–16; call with no arguments to reset).
   - Called from a mob (CEM) avatar, it changes that mob's hitbox. The sleeping pose is left alone.
@@ -196,6 +202,10 @@ and the upstream README is kept as `README.upstream.md`.
     `vanilla_model` 이 이미 정확하기 때문이다.
 - **`silly:getSkinModel(플레이어 또는 이름[, 콜백])`** → `"SLIM"` · `"WIDE"`. 지금 접속해 있지 않은 플레이어도
   프로필 캐시 · 세션 서버로 알아낸다. 이름을 주면 **비동기**라 콜백으로 받는다.
+- **이름으로 부르는 `silly:getSkin` · `silly:getSkinModel` 은 조회에 실패해도 아바타를 멈추지 않는다.**
+  - 서버 접속자 목록(탭 목록)에 있는 사람은 거기 든 스킨 정보를 바로 쓴다 — 세션 서버에 묻지 않는다.
+  - 그 밖의 사람은 세션 서버에 묻는다. 같은 사람에 대한 조회는 아바타가 여럿이어도 하나로 합치고, 실패하면 3초 · 10초 뒤 두 번 더 해 본다.
+  - 끝내 못 찾으면 콜백을 부르지 않고 게임 로그에 경고만 남긴다(지금 입은 스킨이 그대로 남는다).
 - **`silly:setBoundingBoxScale(...)`** → 아바타를 입은 플레이어 · 몹의 히트박스 너비 · 높이 스케일
   (vec2 · 두 값 · 한 값, 0.05~16 · 인자 없이 부르면 원래대로).
   - 몹(CEM) 아바타에서 부르면 그 몹의 히트박스가 바뀐다. 잠자는 자세는 건드리지 않는다.

@@ -1,10 +1,9 @@
 package dev.celestial.silly.lua;
 
+import com.mojang.authlib.GameProfile;
 //? if >=1.21.1 {
 import com.mojang.authlib.yggdrasil.ProfileResult;
-//?} else {
-/*import com.mojang.authlib.GameProfile;
-*///?}
+//?}
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.brigadier.StringReader;
 import com.pngencoder.PngEncoder;
@@ -23,6 +22,7 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
@@ -87,7 +87,10 @@ import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -299,20 +302,15 @@ public class SillyAPI {
             return avatar.registerTexture("silly.getSkin(" + plr.getName() + ")", SillyUtil.getImage(skin), true);
             *///?}
         } else if (param instanceof String name) {
-            UUID uuid = SillyUtil.getUUID(name);
-            Util.backgroundExecutor().execute(() -> {
-                //? if >=1.21.1 {
-                ProfileResult profile = minecraft.getMinecraftSessionService().fetchProfile(uuid, false);
+            //? if >=1.21.1 {
+            resolveProfile(name).thenAcceptAsync(profile -> {
                 if (profile == null) {
-                    minecraft.execute(() -> {
-                        if (avatar.luaRuntime == null || avatar.scriptError) return;
-                        avatar.luaRuntime.error(new LuaError("Could not find user " + name));
-                    });
+                    skinLookupFailed(name);
                     return;
                 }
-                var skin = minecraft.getSkinManager().getOrLoad(profile.profile());
-                skin.thenAcceptAsync(playerSkin -> {
+                minecraft.getSkinManager().getOrLoad(profile).thenAcceptAsync(playerSkin -> {
                     //? if >=1.21.4 {
+                    if (playerSkin.isEmpty()) skinLookupFailed(name);
                     playerSkin.ifPresent(sk -> {
                     //?} else {
                         /*var sk = playerSkin;
@@ -328,14 +326,16 @@ public class SillyAPI {
                     //? if >=1.21.4 {
                     });
                     //?}
-
                 }, minecraft);
-                //?} else {
-                    /*GameProfile profile = minecraft.getMinecraftSessionService().fillProfileProperties(new GameProfile(uuid, null), true);
-                    var skin = minecraft.getSkinManager().getInsecureSkinLocation(profile);
-                    callback.invoke(LuaValue.valueOf(skin.toString()));
-                *///?}
+            }, minecraft);
+            //?} else {
+            /*UUID uuid = SillyUtil.getUUID(name);
+            Util.backgroundExecutor().execute(() -> {
+                GameProfile profile = minecraft.getMinecraftSessionService().fillProfileProperties(new GameProfile(uuid, null), true);
+                var skin = minecraft.getSkinManager().getInsecureSkinLocation(profile);
+                callback.invoke(LuaValue.valueOf(skin.toString()));
             });
+            *///?}
             return null;
         } else {
             throw new LuaError("Parameter to getSkin must be either string or PlayerAPI!");
@@ -381,20 +381,15 @@ public class SillyAPI {
             *///?}
         } else if (param instanceof String name) {
             if (callback == null) throw new LuaError("getSkinModel(name) requires a callback!");
-            UUID uuid = SillyUtil.getUUID(name);
-            if (uuid == null) throw new LuaError("Could not resolve user " + name);
-            Util.backgroundExecutor().execute(() -> {
-                //? if >=1.21.1 {
-                ProfileResult profile = minecraft.getMinecraftSessionService().fetchProfile(uuid, false);
+            //? if >=1.21.1 {
+            resolveProfile(name).thenAcceptAsync(profile -> {
                 if (profile == null) {
-                    minecraft.execute(() -> {
-                        if (avatar.luaRuntime == null || avatar.scriptError) return;
-                        avatar.luaRuntime.error(new LuaError("Could not find user " + name));
-                    });
+                    skinLookupFailed(name);
                     return;
                 }
-                minecraft.getSkinManager().getOrLoad(profile.profile()).thenAcceptAsync(playerSkin -> {
+                minecraft.getSkinManager().getOrLoad(profile).thenAcceptAsync(playerSkin -> {
                     //? if >=1.21.4 {
+                    if (playerSkin.isEmpty()) skinLookupFailed(name);
                     playerSkin.ifPresent(sk -> {
                     //?} else {
                         /*var sk = playerSkin;
@@ -409,18 +404,60 @@ public class SillyAPI {
                     });
                     //?}
                 }, minecraft);
-                //?} else {
-                /*minecraft.execute(() -> {
-                    if (avatar.luaRuntime == null || avatar.scriptError) return;
-                    avatar.luaRuntime.error(new LuaError("getSkinModel(name) requires 1.21.1+"));
-                });
-                *///?}
-            });
+            }, minecraft);
             return null;
+            //?} else {
+            /*throw new LuaError("getSkinModel(name) requires 1.21.1+");
+            *///?}
         } else {
             throw new LuaError("Parameter to getSkinModel must be either string or PlayerAPI!");
         }
     }
+
+    //? if >=1.21.1 {
+    // ── 이름 → 프로필 (getSkin · getSkinModel 공용) ──
+    private static final Map<UUID, CompletableFuture<GameProfile>> PROFILE_LOOKUPS = new ConcurrentHashMap<>();
+    private static final long[] PROFILE_RETRY_MS = { 0, 3000, 10000 };
+
+    /** 렌더 스레드에서 부른다(getUUID 가 월드 플레이어 목록을 읽는다). 못 찾으면 null 로 끝난다 — 예외를 내지 않는다. */
+    private CompletableFuture<GameProfile> resolveProfile(String name) {
+        ClientPacketListener connection = minecraft.getConnection();
+        PlayerInfo info = connection == null ? null : connection.getPlayerInfo(name);
+        if (info != null && info.getProfile().getProperties().containsKey("textures"))
+            return CompletableFuture.completedFuture(info.getProfile());
+
+        UUID uuid = info != null ? info.getProfile().getId() : SillyUtil.getUUID(name);
+        if (uuid == null) return CompletableFuture.completedFuture(null);
+
+        CompletableFuture<GameProfile> mine = new CompletableFuture<>();
+        CompletableFuture<GameProfile> running = PROFILE_LOOKUPS.putIfAbsent(uuid, mine);
+        if (running != null) return running;
+        fetchProfileWithRetry(uuid, 0).whenComplete((profile, e) -> {
+            if (profile == null) PROFILE_LOOKUPS.remove(uuid, mine);
+            mine.complete(profile);
+        });
+        return mine;
+    }
+
+    private CompletableFuture<GameProfile> fetchProfileWithRetry(UUID uuid, int attempt) {
+        long delay = PROFILE_RETRY_MS[attempt];
+        Executor executor = delay == 0 ? Util.backgroundExecutor()
+                : CompletableFuture.delayedExecutor(delay, TimeUnit.MILLISECONDS, Util.backgroundExecutor());
+        return CompletableFuture.supplyAsync(() -> {
+                    ProfileResult result = minecraft.getMinecraftSessionService().fetchProfile(uuid, false);
+                    return result == null ? null : result.profile();
+                }, executor)
+                .exceptionally(e -> null)
+                .thenCompose(profile -> profile != null || attempt + 1 >= PROFILE_RETRY_MS.length
+                        ? CompletableFuture.completedFuture(profile)
+                        : fetchProfileWithRetry(uuid, attempt + 1));
+    }
+
+    // ⚠ luaRuntime.error 로 올리지 마라 — 아바타 전체가 멈춘다. 스킨은 앞의 것 그대로 두고 로그만 남긴다
+    private void skinLookupFailed(String name) {
+        SillyUtil.logAsAvatar(avatar, SillyPlugin.LOGGER::warn, "Could not load skin of " + name + " (keeping the current skin)");
+    }
+    //?}
 
     @LuaWhitelist
     @LuaMethodDoc(value = "silly.get_figura_debug_string")
