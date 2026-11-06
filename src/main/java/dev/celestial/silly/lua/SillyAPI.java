@@ -122,6 +122,9 @@ public class SillyAPI {
     // 이 아바타 착용 엔티티의 달리기 파티클(발밑 블록 가루). false = 보는 클라에서 안 뿌린다 (2026-10-30, 하네스 본격플러팅강좌 스태프 판넬).
     //   SprintParticleMixin 이 Entity.canSpawnSprintParticle RETURN 에서 읽는다. 아바타가 새로 뜨면 SillyAPI 도 새로 만들어져 기본값(true)으로 돌아온다.
     public boolean sprintParticles = true;
+    // 호스트의 수영 허용. false = 물속 달리기를 막아 수영 상태로 못 들어간다 (2026-11-06, 하네스 별의별난연구소_3화).
+    //   LocalPlayerMixin 이 SillyPlugin.hostInstance 의 이 값을 읽는다. 아바타가 내려가면 hostInstance 가 비어 저절로 풀린다.
+    public boolean swimAllowed = true;
 
     public SillyAPI(FiguraLuaRuntime runtime) {
         this.avatar = runtime.owner;
@@ -1480,6 +1483,24 @@ public class SillyAPI {
     public SillyAPI setSprintParticles(Boolean enabled) {
         // 없이 호출(nil) = 켜기(바닐라로 되돌림). 표시 전용이라 치트 게이트 없음 — 이 아바타를 보는 모든 클라에서 먹는다.
         sprintParticles = enabled == null || enabled;
+        return this;
+    }
+
+    @LuaWhitelist
+    @LuaMethodDoc(
+            value = "silly.set_swim_allowed",
+            overloads = {
+                    @LuaMethodOverload(
+                            argumentTypes = { Boolean.class },
+                            argumentNames = { "allowed" },
+                            returnType = SillyAPI.class
+                    ),
+                    @LuaMethodOverload(returnType = SillyAPI.class)
+            }
+    )
+    public SillyAPI setSwimAllowed(Boolean allowed) {
+        // 없이 호출(nil) = 허용(바닐라로 되돌림). 호스트 아바타의 값만 먹는다 · 치트 설정을 따른다 — LocalPlayerMixin
+        swimAllowed = allowed == null || allowed;
         return this;
     }
 

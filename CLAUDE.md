@@ -105,6 +105,11 @@
      아바타가 되살아나지 않는다(잠금의 뜻).
    · `.libs` 포크 jar 재복사 + 재빌드했다 (포크 공개 API 추가).
 
+6. **`silly:setSwimAllowed(allowed)` 추가** (2026-11-06, 하네스 `projects/별의별난연구소_3화`) — 호스트의 수영을 막는다.
+   · 왜 달리기를 막나 — 바닐라 `Entity.updateSwimming` 은 «달리기 + 물속» 판정이고 서버도 같은 판정을 돌린다. 클라 자세만 막으면 남 화면 · 리플레이는 수영이다.
+   · `LocalPlayerMixin` 이 `canStartSprinting` · `shouldStopSwimSprinting` · `shouldStopRunSprinting` RETURN 을 바꾼다 — `//? if >=1.21.6` 안이다(옛 타깃은 이름을 안 재봤다).
+   · 값은 `SillyPlugin.hostInstance` 만 읽는다 — 아바타가 내려가면 `cleanup` 이 비워 저절로 풀린다.
+
 ## ⚠️ 미신 작성 주의 (실제로 크래시 났던 것들)
 
 - **`Player`/`Entity` 등 공용 클래스 믹스인은 통합 서버(싱글플레이) 스레드의 서버측 엔티티에도 적용된다.**
@@ -122,7 +127,7 @@
 ## Lua API 표면 (전역)
 
 - `silly` — 메인. HUD 숨김(`setHudElementVisible`, 17종), 아바타 조회/권한, 이동·물리 치트
-  (`setPos/setRot/setVelocity/setGravity/setFly/setNoclip`), 히트박스(`setBoundingBoxScale`),
+  (`setPos/setRot/setVelocity/setGravity/setFly/setNoclip/setSwimAllowed`), 히트박스(`setBoundingBoxScale`),
   가짜 블록, `silly.vehicle`(탈것), `silly.profiler`, `silly.collection`(테이블 유틸),
   `silly.compats.svc`(Simple Voice Chat — `isTalking`/`getVolume` 립싱크용)
 - `silly_backports` (= `silly.backports`, deprecated) — `getCaller`, 런타임 스크립트 조작
