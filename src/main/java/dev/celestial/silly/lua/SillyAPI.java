@@ -125,6 +125,10 @@ public class SillyAPI {
     // 호스트의 수영 허용. false = 물속 달리기를 막아 수영 상태로 못 들어간다 (2026-11-06, 하네스 별의별난연구소_3화).
     //   LocalPlayerMixin 이 SillyPlugin.hostInstance 의 이 값을 읽는다. 아바타가 내려가면 hostInstance 가 비어 저절로 풀린다.
     public boolean swimAllowed = true;
+    // 1인칭 손 흔들림 배율 — 걸음(bobView 진폭) · 시선 지연(손 패스 회전 둘) (2026-11-23, 하네스 mc_repositories M67).
+    //   GameRendererMixin · ItemInHandRendererMixin 이 SillyPlugin.hostInstance 의 이 값을 읽는다(HandBob). 새 아바타는 1 부터.
+    public final HandBob.Channel handBob = new HandBob.Channel();
+    public final HandBob.Channel handSway = new HandBob.Channel();
 
     public SillyAPI(FiguraLuaRuntime runtime) {
         this.avatar = runtime.owner;
@@ -1502,6 +1506,61 @@ public class SillyAPI {
         // 없이 호출(nil) = 허용(바닐라로 되돌림). 호스트 아바타의 값만 먹는다 · 치트 설정을 따른다 — LocalPlayerMixin
         swimAllowed = allowed == null || allowed;
         return this;
+    }
+
+    @LuaWhitelist
+    @LuaMethodDoc(
+            value = "silly.set_hand_bob_scale",
+            overloads = {
+                    @LuaMethodOverload(
+                            argumentTypes = { Float.class },
+                            argumentNames = { "scale" },
+                            returnType = SillyAPI.class
+                    ),
+                    @LuaMethodOverload(
+                            argumentTypes = { Float.class, Integer.class },
+                            argumentNames = { "scale", "ticks" },
+                            returnType = SillyAPI.class
+                    )
+            }
+    )
+    public SillyAPI setHandBobScale(Float scale, Integer ticks) {
+        // nil = 1(바닐라). 0 ~ 10 으로 자른다. 호스트 아바타의 값만 화면에 먹는다 · 표시 전용이라 치트 게이트 없음 — HandBob
+        handBob.set(scale == null ? 1f : scale, ticks == null ? 0 : ticks);
+        return this;
+    }
+
+    @LuaWhitelist
+    @LuaMethodDoc(
+            value = "silly.set_hand_sway_scale",
+            overloads = {
+                    @LuaMethodOverload(
+                            argumentTypes = { Float.class },
+                            argumentNames = { "scale" },
+                            returnType = SillyAPI.class
+                    ),
+                    @LuaMethodOverload(
+                            argumentTypes = { Float.class, Integer.class },
+                            argumentNames = { "scale", "ticks" },
+                            returnType = SillyAPI.class
+                    )
+            }
+    )
+    public SillyAPI setHandSwayScale(Float scale, Integer ticks) {
+        handSway.set(scale == null ? 1f : scale, ticks == null ? 0 : ticks);
+        return this;
+    }
+
+    @LuaWhitelist
+    @LuaMethodDoc("silly.get_hand_bob_scale")
+    public float getHandBobScale() {
+        return handBob.get();
+    }
+
+    @LuaWhitelist
+    @LuaMethodDoc("silly.get_hand_sway_scale")
+    public float getHandSwayScale() {
+        return handSway.get();
     }
 
     @LuaWhitelist

@@ -110,6 +110,16 @@
    · `LocalPlayerMixin` 이 `canStartSprinting` · `shouldStopSwimSprinting` · `shouldStopRunSprinting` RETURN 을 바꾼다 — `//? if >=1.21.6` 안이다(옛 타깃은 이름을 안 재봤다).
    · 값은 `SillyPlugin.hostInstance` 만 읽는다 — 아바타가 내려가면 `cleanup` 이 비워 저절로 풀린다.
 
+7. **`silly:setHandBobScale(scale, [ticks])` · `setHandSwayScale(scale, [ticks])` 추가** (2026-11-23, 하네스 `projects/mc_repositories` M67 · 1.2.0-alpha.6) — 1인칭 손 흔들림 배율.
+   · 왜 원천에서 — 코어 `FirstPerson` 파츠 · 피벗 손 아이템은 손 패스 흔들림이 **다 곱해진 뒤**(`renderHandsWithItems` `mulPose` ordinal 1 AFTER)에 그려진다.
+     흔들림이 곱해지는 바닐라 자리를 바꾸면 바닐라 팔 · 아이템 · Figura 팔 · `FirstPerson` 이 함께 따른다 → 코어 포크 수정이 필요 없다.
+   · 걸음 — `GameRendererMixin` 이 `bobView` 안 `Mth.lerp`(진폭) 결과에 배율(`@ModifyExpressionValue`). 이동 · Z · X 회전이 모두 진폭에 비례한다.
+     `renderLevel` 의 `bobView` 호출(카메라 — 월드 투영에 굽는다)은 `@WrapOperation` 으로 감싸 `HandBob.cameraPass` 동안 배율을 안 건다.
+     호출 자리가 아니라 메서드 안에서 바꾸는 까닭 — 셰이더팩 손 경로가 `bobView` 를 따로 불러도 같은 배율이 걸리게(⚠ Iris 는 인게임으로만 확인).
+   · 시선 지연 — `ItemInHandRendererMixin`(새) 이 `renderHandsWithItems` 의 `Axis.rotationDegrees` ordinal 0 · 1 인자에 배율. `rotationDegrees` 는 공식 jar 에서도 이름 그대로(재매핑 없음).
+   · 전환 — `helper/HandBob.Channel` · 실제 시간(`System.nanoTime`) smoothstep · 다시 부르면 지금 보이는 값에서 이어 간다. 값은 `SillyPlugin.hostInstance` 만 읽는다(호스트 화면).
+   · 빌드 jar `javap -v`: `method_3186`(bobView) · `method_3188`(renderLevel) · `method_22976`(renderHandsWithItems) · `method_16439`(lerp).
+
 ## ⚠️ 미신 작성 주의 (실제로 크래시 났던 것들)
 
 - **`Player`/`Entity` 등 공용 클래스 믹스인은 통합 서버(싱글플레이) 스레드의 서버측 엔티티에도 적용된다.**

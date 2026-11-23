@@ -15,7 +15,7 @@
 
 | Item | Value |
 |---|---|
-| Version | `1.2.0-alpha.5` — the `.N` after upstream 1.2.0-alpha is this fork's own release number (see 5) |
+| Version | `1.2.0-alpha.6` — the `.N` after upstream 1.2.0-alpha is this fork's own release number (see 5) |
 | Added target | Minecraft 1.21.8, Fabric |
 | Upstream targets | 1.21.4 and 1.21.1 (Fabric, NeoForge), 1.20.1 (Fabric) — the version folders are still there, but they **do not build right now** (see "Building") |
 | Figura for 1.21.8 | MCmod_Figura_quadaFork `0.1.6.4+1.21.8` (not on the official Maven) |
@@ -85,8 +85,17 @@ Code: `settings.gradle.kts` · `stonecutter.gradle.kts` · `build.gradle.kts` ·
   While blocked, sprinting underwater stops, so a current swim ends at once and sprinting underwater never starts one. No sprint reaches
   the server, so other clients see the same. You can still sprint on the surface; crawling in a one-block gap is not blocked. It follows
   the cheats setting and resets when the avatar unloads.
+- **`silly:setHandBobScale(scale, [ticks])`** and **`silly:setHandSwayScale(scale, [ticks])`** → scale the first-person hand bob.
+  The first is the walking bob, the second the view-lag sway (the arms trailing behind when you turn). 0 = none, 1 = vanilla,
+  clamped to 0 ~ 10; call with no arguments to go back to 1. They change the spots where vanilla multiplies the bob into the hand pass
+  (the amplitude in `GameRenderer.bobView` and the two rotations in `renderHandsWithItems`), so the vanilla arms, held items,
+  Figura first-person arms and the core's `FirstPerson` parent parts all follow. The camera bob is untouched.
+  With `ticks`, the value eases in-out from what is shown now to the new value over that many ticks (1 tick = 50 ms of real time);
+  calling again mid-transition does not jump. Read the shown value with `silly:getHandBobScale()` / `getHandSwayScale()`.
+  Host avatar only, independent of the cheats setting, and back to 1 when the avatar unloads. With the View Bobbing option off,
+  vanilla has no walking bob to scale.
 
-Code: `lua/SillyAPI.java` · five new files — `helper/ThirdPersonPose.java`, `mixin/PlayerRendererInvoker.java`, `mixin/PlayerDimensionsMixin.java`, `mixin/MobDimensionsMixin.java`, `mixin/SprintParticleMixin.java`
+Code: `lua/SillyAPI.java`, `mixin/GameRendererMixin.java` · seven new files — `helper/ThirdPersonPose.java`, `helper/HandBob.java`, `mixin/PlayerRendererInvoker.java`, `mixin/PlayerDimensionsMixin.java`, `mixin/MobDimensionsMixin.java`, `mixin/SprintParticleMixin.java`, `mixin/ItemInHandRendererMixin.java`
 
 ### 3. `/figura` subcommands — `upload` and `reload` scopes
 
@@ -109,10 +118,10 @@ Code: `mixin/SillyKeybindMixin.java` (new) · `SillySettings.java`
 
 ### 5. Version number
 
-The version adds this fork's own release number `.N` after upstream 1.2.0-alpha — `1.2.0-alpha.5`
-(jar: `sillyplugin-1.2.0-alpha.5.jar`). The first release used the tag `1.2.0-alpha.but-ai-edited.1`.
+The version adds this fork's own release number `.N` after upstream 1.2.0-alpha — `1.2.0-alpha.6`
+(jar: `sillyplugin-1.2.0-alpha.6.jar`). The first release used the tag `1.2.0-alpha.but-ai-edited.1`.
 The upstream version is a pre-release, so there is no room for a fourth number — ⚠ upstream could publish the same name
-(`1.2.0-alpha.5`), so get this fork's jar from this repository's Releases.
+(`1.2.0-alpha.6`), so get this fork's jar from this repository's Releases.
 
 Code: `gradle.properties`
 
@@ -137,7 +146,7 @@ cp ../MCmod_Figura_quadaFork/fabric/build/libs/figura-0.1.6.4+1.21.8-fabric-mc.j
 ./gradlew :1.21.8-fabric:build
 ```
 
-Output: `versions/1.21.8-fabric/build/libs/sillyplugin-1.2.0-alpha.5.jar`
+Output: `versions/1.21.8-fabric/build/libs/sillyplugin-1.2.0-alpha.6.jar`
 
 - ⚠ The other targets keep only their upstream version folders and **do not build as things stand.** Code added in
   this fork uses a 1.21.2+ API (`PlayerRenderState`) and an API that exists only in MCmod_Figura_quadaFork
@@ -163,7 +172,7 @@ and the upstream README is kept as `README.upstream.md`.
 
 | 항목 | 값 |
 |---|---|
-| 버전 | `1.2.0-alpha.5` — 업스트림 1.2.0-alpha 뒤 `.N` 이 이 포크의 판 번호 (아래 5) |
+| 버전 | `1.2.0-alpha.6` — 업스트림 1.2.0-alpha 뒤 `.N` 이 이 포크의 판 번호 (아래 5) |
 | 추가한 타깃 | Minecraft 1.21.8 · Fabric |
 | 원본 타깃 | 1.21.4 · 1.21.1 (Fabric · NeoForge), 1.20.1 (Fabric) — 버전 폴더는 남아 있지만 **지금은 빌드되지 않는다** (아래 «빌드») |
 | 1.21.8 의 대상 Figura | MCmod_Figura_quadaFork `0.1.6.4+1.21.8` (공식 Maven 에 없다) |
@@ -227,8 +236,15 @@ and the upstream README is kept as `README.upstream.md`.
 - **`silly:setSwimAllowed(allowed)`** → 호스트의 수영을 막거나 푼다(`false` = 막기 · 인자 없이 부르면 풀기). 막으면 물속 달리기가 끊겨
   수영 중이어도 바로 풀리고, 물속에서 달려도 수영 상태가 되지 않는다. 서버에 달리기를 안 보내므로 다른 사람 화면에서도 같다.
   수면에서는 달릴 수 있다 · 1칸 틈에서 기어가는 자세는 막지 않는다 · 치트 설정을 따른다 · 아바타가 내려가면 풀린다.
+- **`silly:setHandBobScale(scale, [ticks])`** · **`silly:setHandSwayScale(scale, [ticks])`** → 1인칭 손 흔들림의 배율.
+  앞은 걸음 흔들림, 뒤는 시선 지연(고개를 돌리면 팔이 늦게 따라오는 것)이다. 0 = 흔들림 없음 · 1 = 바닐라 · 0 ~ 10 으로 자른다 · 인자 없이 부르면 1.
+  바닐라 손 패스에서 흔들림이 곱해지는 자리(`GameRenderer.bobView` 의 진폭 · `renderHandsWithItems` 의 회전 둘)를 바꾸므로
+  바닐라 팔 · 든 아이템 · Figura 1인칭 팔 · 코어 `FirstPerson` 부모 파츠가 함께 따른다. 카메라 흔들림은 그대로다.
+  `ticks` 를 주면 지금 보이는 값에서 새 값까지 그 틱(1틱 = 실제 50ms) 동안 ease in-out 으로 바뀐다 · 전환 중에 다시 불러도 튀지 않는다.
+  지금 보이는 값은 `silly:getHandBobScale()` · `getHandSwayScale()`. 호스트 아바타만 먹는다 · 치트 설정과 무관 · 아바타가 내려가면 1.
+  «화면 흔들림» 설정이 꺼져 있으면 걸음 흔들림은 원래 없다(배율이 할 일이 없다).
 
-코드: `lua/SillyAPI.java` · 새 파일 다섯 — `helper/ThirdPersonPose.java` · `mixin/PlayerRendererInvoker.java` · `mixin/PlayerDimensionsMixin.java` · `mixin/MobDimensionsMixin.java` · `mixin/SprintParticleMixin.java`
+코드: `lua/SillyAPI.java` · `mixin/GameRendererMixin.java` · 새 파일 일곱 — `helper/ThirdPersonPose.java` · `helper/HandBob.java` · `mixin/PlayerRendererInvoker.java` · `mixin/PlayerDimensionsMixin.java` · `mixin/MobDimensionsMixin.java` · `mixin/SprintParticleMixin.java` · `mixin/ItemInHandRendererMixin.java`
 
 ### 3. `/figura` 하위 명령 — `upload` · `reload` 범위
 
@@ -250,9 +266,9 @@ Figura 의 다시 불러오기 키는 내 아바타만 다시 불러온다. 옷�
 
 ### 5. 버전 표기
 
-업스트림 1.2.0-alpha 뒤에 이 포크의 판 번호 `.N` 을 붙인다 — `1.2.0-alpha.5`
-(jar 는 `sillyplugin-1.2.0-alpha.5.jar`). 첫 판은 꼬리 `1.2.0-alpha.but-ai-edited.1` 였다.
-업스트림 버전이 프리릴리스라 넷째 자리를 붙일 자리가 없다 — ⚠ 업스트림이 같은 이름(`1.2.0-alpha.5`)을 낼 수 있으니 이 포크의 jar 는 이 저장소 Release 에서 받는다.
+업스트림 1.2.0-alpha 뒤에 이 포크의 판 번호 `.N` 을 붙인다 — `1.2.0-alpha.6`
+(jar 는 `sillyplugin-1.2.0-alpha.6.jar`). 첫 판은 꼬리 `1.2.0-alpha.but-ai-edited.1` 였다.
+업스트림 버전이 프리릴리스라 넷째 자리를 붙일 자리가 없다 — ⚠ 업스트림이 같은 이름(`1.2.0-alpha.6`)을 낼 수 있으니 이 포크의 jar 는 이 저장소 Release 에서 받는다.
 
 코드: `gradle.properties`
 
@@ -275,7 +291,7 @@ cp ../MCmod_Figura_quadaFork/fabric/build/libs/figura-0.1.6.4+1.21.8-fabric-mc.j
 ./gradlew :1.21.8-fabric:build
 ```
 
-산출물: `versions/1.21.8-fabric/build/libs/sillyplugin-1.2.0-alpha.5.jar`
+산출물: `versions/1.21.8-fabric/build/libs/sillyplugin-1.2.0-alpha.6.jar`
 
 - ⚠ 다른 타깃은 버전 폴더만 원본대로 남아 있고 **지금 상태로는 빌드되지 않는다.** 이 포크에서 더한 코드가 버전 조건 없이
   1.21.2+ API(`PlayerRenderState`)와 MCmod_Figura_quadaFork 에만 있는 API(`NetworkStuff.Destination`)를 쓰기 때문이다.
