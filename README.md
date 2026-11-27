@@ -15,7 +15,7 @@
 
 | Item | Value |
 |---|---|
-| Version | `1.2.0-alpha.6` — the `.N` after upstream 1.2.0-alpha is this fork's own release number (see 5) |
+| Version | `1.2.0-alpha.7` — the `.N` after upstream 1.2.0-alpha is this fork's own release number (see 5) |
 | Added target | Minecraft 1.21.8, Fabric |
 | Upstream targets | 1.21.4 and 1.21.1 (Fabric, NeoForge), 1.20.1 (Fabric) — the version folders are still there, but they **do not build right now** (see "Building") |
 | Figura for 1.21.8 | MCmod_Figura_quadaFork `0.1.6.4+1.21.8` (not on the official Maven) |
@@ -65,6 +65,10 @@ Code: `settings.gradle.kts` · `stonecutter.gradle.kts` · `build.gradle.kts` ·
   - Players in the server's player list (tab list) use the skin data already there — the session server is not asked.
   - Anyone else is looked up on the session server. Lookups for the same player are shared across avatars, and a
     failed lookup is retried twice, after 3 and 10 seconds.
+- **The texture `silly:getSkin` returns is separate per player** — named `silly.getSkin(<lowercase name>)`.
+  An avatar can fetch several players' skins without closing the earlier ones (before, every fetch used one name,
+  so fetching another player's skin turned an already painted skin into the missing texture).
+  Fetching the same player again returns the texture already registered.
   - If the player still cannot be found, the callback is not called and only a warning goes to the game log (the
     current skin stays).
 - **`silly:setBoundingBoxScale(...)`** → scales the hitbox width and height of the player or mob wearing the avatar
@@ -118,10 +122,10 @@ Code: `mixin/SillyKeybindMixin.java` (new) · `SillySettings.java`
 
 ### 5. Version number
 
-The version adds this fork's own release number `.N` after upstream 1.2.0-alpha — `1.2.0-alpha.6`
-(jar: `sillyplugin-1.2.0-alpha.6.jar`). The first release used the tag `1.2.0-alpha.but-ai-edited.1`.
+The version adds this fork's own release number `.N` after upstream 1.2.0-alpha — `1.2.0-alpha.7`
+(jar: `sillyplugin-1.2.0-alpha.7.jar`). The first release used the tag `1.2.0-alpha.but-ai-edited.1`.
 The upstream version is a pre-release, so there is no room for a fourth number — ⚠ upstream could publish the same name
-(`1.2.0-alpha.6`), so get this fork's jar from this repository's Releases.
+(`1.2.0-alpha.7`), so get this fork's jar from this repository's Releases.
 
 Code: `gradle.properties`
 
@@ -146,7 +150,7 @@ cp ../MCmod_Figura_quadaFork/fabric/build/libs/figura-0.1.6.4+1.21.8-fabric-mc.j
 ./gradlew :1.21.8-fabric:build
 ```
 
-Output: `versions/1.21.8-fabric/build/libs/sillyplugin-1.2.0-alpha.6.jar`
+Output: `versions/1.21.8-fabric/build/libs/sillyplugin-1.2.0-alpha.7.jar`
 
 - ⚠ The other targets keep only their upstream version folders and **do not build as things stand.** Code added in
   this fork uses a 1.21.2+ API (`PlayerRenderState`) and an API that exists only in MCmod_Figura_quadaFork
@@ -172,7 +176,7 @@ and the upstream README is kept as `README.upstream.md`.
 
 | 항목 | 값 |
 |---|---|
-| 버전 | `1.2.0-alpha.6` — 업스트림 1.2.0-alpha 뒤 `.N` 이 이 포크의 판 번호 (아래 5) |
+| 버전 | `1.2.0-alpha.7` — 업스트림 1.2.0-alpha 뒤 `.N` 이 이 포크의 판 번호 (아래 5) |
 | 추가한 타깃 | Minecraft 1.21.8 · Fabric |
 | 원본 타깃 | 1.21.4 · 1.21.1 (Fabric · NeoForge), 1.20.1 (Fabric) — 버전 폴더는 남아 있지만 **지금은 빌드되지 않는다** (아래 «빌드») |
 | 1.21.8 의 대상 Figura | MCmod_Figura_quadaFork `0.1.6.4+1.21.8` (공식 Maven 에 없다) |
@@ -219,6 +223,9 @@ and the upstream README is kept as `README.upstream.md`.
   - 서버 접속자 목록(탭 목록)에 있는 사람은 거기 든 스킨 정보를 바로 쓴다 — 세션 서버에 묻지 않는다.
   - 그 밖의 사람은 세션 서버에 묻는다. 같은 사람에 대한 조회는 아바타가 여럿이어도 하나로 합치고, 실패하면 3초 · 10초 뒤 두 번 더 해 본다.
   - 끝내 못 찾으면 콜백을 부르지 않고 게임 로그에 경고만 남긴다(지금 입은 스킨이 그대로 남는다).
+- **`silly:getSkin` 이 돌려주는 텍스처는 사람마다 따로다** — 이름 `silly.getSkin(<소문자 이름>)`.
+  한 아바타가 여러 사람 스킨을 받아도 앞서 받은 것이 닫히지 않는다(전에는 한 이름에 몰아 등록해, 내 스킨을 칠한 뒤 남의 스킨을 받으면 내 몸이 미싱 텍스처가 됐다).
+  같은 사람을 다시 받으면 이미 등록된 텍스처를 그대로 돌려준다.
 - **`silly:setBoundingBoxScale(...)`** → 아바타를 입은 플레이어 · 몹의 히트박스 너비 · 높이 스케일
   (vec2 · 두 값 · 한 값, 0.05~16 · 인자 없이 부르면 원래대로).
   - 몹(CEM) 아바타에서 부르면 그 몹의 히트박스가 바뀐다. 잠자는 자세는 건드리지 않는다.
@@ -266,9 +273,9 @@ Figura 의 다시 불러오기 키는 내 아바타만 다시 불러온다. 옷�
 
 ### 5. 버전 표기
 
-업스트림 1.2.0-alpha 뒤에 이 포크의 판 번호 `.N` 을 붙인다 — `1.2.0-alpha.6`
-(jar 는 `sillyplugin-1.2.0-alpha.6.jar`). 첫 판은 꼬리 `1.2.0-alpha.but-ai-edited.1` 였다.
-업스트림 버전이 프리릴리스라 넷째 자리를 붙일 자리가 없다 — ⚠ 업스트림이 같은 이름(`1.2.0-alpha.6`)을 낼 수 있으니 이 포크의 jar 는 이 저장소 Release 에서 받는다.
+업스트림 1.2.0-alpha 뒤에 이 포크의 판 번호 `.N` 을 붙인다 — `1.2.0-alpha.7`
+(jar 는 `sillyplugin-1.2.0-alpha.7.jar`). 첫 판은 꼬리 `1.2.0-alpha.but-ai-edited.1` 였다.
+업스트림 버전이 프리릴리스라 넷째 자리를 붙일 자리가 없다 — ⚠ 업스트림이 같은 이름(`1.2.0-alpha.7`)을 낼 수 있으니 이 포크의 jar 는 이 저장소 Release 에서 받는다.
 
 코드: `gradle.properties`
 
@@ -291,7 +298,7 @@ cp ../MCmod_Figura_quadaFork/fabric/build/libs/figura-0.1.6.4+1.21.8-fabric-mc.j
 ./gradlew :1.21.8-fabric:build
 ```
 
-산출물: `versions/1.21.8-fabric/build/libs/sillyplugin-1.2.0-alpha.6.jar`
+산출물: `versions/1.21.8-fabric/build/libs/sillyplugin-1.2.0-alpha.7.jar`
 
 - ⚠ 다른 타깃은 버전 폴더만 원본대로 남아 있고 **지금 상태로는 빌드되지 않는다.** 이 포크에서 더한 코드가 버전 조건 없이
   1.21.2+ API(`PlayerRenderState`)와 MCmod_Figura_quadaFork 에만 있는 API(`NetworkStuff.Destination`)를 쓰기 때문이다.

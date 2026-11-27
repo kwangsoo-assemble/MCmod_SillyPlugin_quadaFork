@@ -302,8 +302,8 @@ public class SillyAPI {
     public FiguraTexture getSkin(@LuaNotNil Object param, LuaFunction callback) {
         if (param instanceof PlayerAPI plr) {
             //? if >=1.21.1 {
-            var skin = ((AbstractClientPlayer)plr.getEntity()).getSkin();
-            return avatar.registerTexture("silly.getSkin", SillyUtil.getImage(skin.texture()), true);
+            var acp = (AbstractClientPlayer)plr.getEntity();
+            return skinTexture(acp.getGameProfile().getName(), acp.getSkin().texture());
              //?} else {
             /*var skin = ((AbstractClientPlayer)plr.getEntity()).getSkinTextureLocation();
             return avatar.registerTexture("silly.getSkin(" + plr.getName() + ")", SillyUtil.getImage(skin), true);
@@ -325,7 +325,7 @@ public class SillyAPI {
                         try (CallerContext ctx = BackportsAPI.openCallerContext(avatar.owner, null, "silly.getSkin.callback")) {
                             if (avatar.luaRuntime == null || avatar.scriptError) return;
                             SillyUtil.logAsAvatar(avatar, SillyPlugin.LOGGER::info, "Loc: " + sk.texture().toString());
-                            var tx = avatar.registerTexture("silly.getSkin", SillyUtil.getImage(sk.texture()), true);
+                            var tx = skinTexture(name, sk.texture());
                             callback.invoke(runtime.typeManager.javaToLua(tx));
                         } catch (Exception e) {
                             avatar.luaRuntime.error(e);
@@ -347,6 +347,20 @@ public class SillyAPI {
         } else {
             throw new LuaError("Parameter to getSkin must be either string or PlayerAPI!");
         }
+    }
+
+    /**
+     * 받은 스킨을 아바타 텍스처로 — 이름마다 따로 등록한다({@code silly.getSkin(<소문자 이름>)}).
+     *
+     * <p>⚠ 한 이름({@code silly.getSkin})에 몰아 등록하면 Figura {@code registerTexture} 가 옛 텍스처를 닫는다 —
+     * 내 스킨을 칠한 뒤 다른 사람 스킨을 받으면 내 몸이 미싱 텍스처가 됐다.
+     * 같은 이름이 이미 있으면 그것을 그대로 돌려준다 — 다시 등록하면 그 텍스처를 쓰던 파츠가 깨진다.
+     */
+    private FiguraTexture skinTexture(String who, ResourceLocation loc) {
+        String key = "silly.getSkin(" + who.toLowerCase(java.util.Locale.ROOT) + ")";
+        FiguraTexture old = avatar.renderer.customTextures.get(key);
+        if (old != null) return old;
+        return avatar.registerTexture(key, SillyUtil.getImage(loc), true);
     }
 
     @LuaWhitelist
